@@ -1,8 +1,4 @@
-let currentPage = 1;
-let itemsPerPage = 10;
-let totalItems = 0;
-let playlist = [];
-let groups = [];
+
 
 const fileInput = document.getElementById('fileInput');
 const playlistContainer = document.getElementById('playlistContainer');
@@ -11,7 +7,11 @@ const groupSelect = document.getElementById('groupSelect');
 const searchButton = document.getElementById('searchButton');
 const paginationContainer = document.getElementById('paginationContainer');
 
-
+let currentPage = 1;
+let itemsPerPage = 10;
+let totalItems = 0;
+let playlist = [];
+let groups = [];
 fileInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   const reader = new FileReader();
