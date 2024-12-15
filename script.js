@@ -119,6 +119,6 @@ function updatePaginationInfo() {
 
 // Play stream by redirecting to the player page
 function playStream(url, name) {
-    const playerUrl = `https://unknown-playlists-opplex-tv.vercel.app/player.html?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
-    window.location.href = playerUrl;
+    const playerUrl=https://eat-paax2g1gl-xyz-6cc64b76.vercel.app/?url=${encodeURIComponent(url)}&name=${encodeURIComponent(name)}`;
+    window.location.href = playerUrl;https://eat-paax2g1gl-xyz-6cc64b76.vercel.app/
   }
