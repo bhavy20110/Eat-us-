@@ -1,8 +1,8 @@
-const CHANNELS_PER_PAGE = 50;
-let channels = [];
 let currentPage = 1;
-let currentGroup = 'all';
-let searchQuery = '';
+let itemsPerPage = 10;
+let totalItems = 0;
+let playlist = [];
+let groups = [];
 
 const fileInput = document.getElementById('fileInput');
 const playlistContainer = document.getElementById('playlistContainer');
