@@ -14,7 +14,7 @@ fetch('Tataplay.m3u')
     })
     .catch(error => console.error('Error fetching M3U file:', error));
 
-// Parse the M3U url
+// Parse the M3U file
 function parseM3U(data) {
     const lines = data.split('\n');
     const parsedChannels = [];
