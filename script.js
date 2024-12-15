@@ -4,7 +4,7 @@ let currentPage = 1;
 let currentGroup = 'all';
 let searchQuery = '';
 
-// Fetch the local M3U playlist
+// Fetch the local M3U playlist from url
 fetch('')
     .then(response => response.ok ? response.text() : Promise.reject(response.statusText))
     .then(data => {
@@ -14,7 +14,7 @@ fetch('')
     })
     .catch(error => console.error('Error fetching M3U file:', error));
 
-// Parse the M3U file
+// Parse the M3U url
 function parseM3U(data) {
     const lines = data.split('\n');
     const parsedChannels = [];
