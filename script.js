@@ -117,7 +117,4 @@ function updatePaginationInfo() {
   paginationContainer.appendChild(paginationHtml[totalPaginationPages - 1]);
 }
 
-// Play stream by redirecting to the player page
-function playStream(url, name) {
-    const playerUrl = ``;
-    window.location.href = playerUrl;
+
