@@ -1,126 +1,121 @@
 const CHANNELS_PER_PAGE = 50;
-let channels = [];
+let channels = [566];
 let currentPage = 1;
 let currentGroup = 'all';
 let searchQuery = '';
 
-// Fetch the local M3U playlist 
-fetch('Tataplay.m3u')
-    .then(response => response.ok ? response.text() : Promise.reject(response.statusText))
-    .then(data => {
-        channels = parseM3U(data);
-        populateGroups();
-        displayChannels();
-    })
-    .catch(error => console.error('Error fetching M3U file:', error));
+const fileInput = document.getElementById('fileInput');
+const playlistContainer = document.getElementById('playlistContainer');
+const searchInput = document.getElementById('searchInput');
+const groupSelect = document.getElementById('groupSelect');
+const searchButton = document.getElementById('searchButton');
+const paginationContainer = document.getElementById('paginationContainer');
 
-// Parse the M3U file
-function parseM3U(data) {
-    const lines = data.split('\n');
-    const parsedChannels = [];
-    let currentChannel = {};
 
-    lines.forEach(line => {
-        line = line.trim();
+fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  const reader = new FileReader();
 
-        if (line.startsWith('#EXTINF:')) {
-            // Push the last channel if there's any
-            if (currentChannel.name) parsedChannels.push(currentChannel);
-            
-            currentChannel = {}; // Reset for the new channel
+  reader.onload = (event) => {
+    const m3uContent = event.target.result;
+    parseM3U(m3uContent);
+  };
 
-            const nameMatch = line.match(/,(.+)$/);
-            const logoMatch = line.match(/tvg-logo="([^"]*)"/);
-            const groupMatch = line.match(/group-title="([^"]*)"/);
+  reader.readAsText(file);
+});
 
-            if (nameMatch) currentChannel.name = nameMatch[1].trim();
-            currentChannel.logo = logoMatch ? logoMatch[1] : '';
-            currentChannel.group = groupMatch ? groupMatch[1] : 'Ungrouped';
-        } else if (line && !line.startsWith('#')) {
-            currentChannel.url = line;
-        }
-    });
+searchButton.addEventListener('click', () => {
+  searchChannels();
+});
 
-    // Push the last channel if it exists
-    if (currentChannel.name) parsedChannels.push(currentChannel);
-    return parsedChannels;
+groupSelect.addEventListener('change', () => {
+  filterByGroup();
+});
+
+function parseM3U(m3uContent) {
+  const lines = m3uContent.split('\n');
+  const playlist = [];
+
+  lines.forEach((line) => {
+    if (line.startsWith('#EXTINF')) {
+      const title = line.split(',')[1];
+      const group = line.split(',')[2];
+      playlist.push({ title, group });
+    } else if (line.trim() !== '') {
+      playlist[playlist.length - 1].url = line.trim();
+    }
+  });
+
+  this.playlist = playlist;
+  populateGroupSelect();
+  displayChannels();
 }
 
-// Populate group select options
-function populateGroups() {
-    const groupSelect = document.getElementById('group-select');
-    const groups = Array.from(new Set(channels.map(channel => channel.group || 'Ungrouped')));
-    groups.forEach(group => {
-        const option = document.createElement('option');
-        option.value = group;
-        option.textContent = group;
-        groupSelect.appendChild(option);
-    });
+function populateGroupSelect() {
+  const uniqueGroups = [...new Set(playlist.map((item) => item.group))];
+  uniqueGroups.sort();
+
+  groupSelect.innerHTML = '';
+  uniqueGroups.forEach((group) => {
+    const option = document.createElement('option');
+    option.value = group;
+    option.textContent = group;
+    groupSelect.appendChild(option);
+  });
 }
 
-// Display channels with pagination, search, and group filter
 function displayChannels() {
-    const container = document.getElementById('channel-list');
-    container.innerHTML = ''; // Clear current channels
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const filteredPlaylist = searchChannels();
 
-    const filteredChannels = channels.filter(channel =>
-        (currentGroup === 'all' || channel.group === currentGroup) &&
-        (!searchQuery || channel.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+  playlistContainer.innerHTML = '';
+  filteredPlaylist.slice(startIndex, endIndex).forEach((item) => {
+    const itemElement = document.createElement('li');
+    itemElement.textContent = item.title;
+    playlistContainer.appendChild(itemElement);
+  });
 
-    const start = (currentPage - 1) * CHANNELS_PER_PAGE;
-    const end = Math.min(start + CHANNELS_PER_PAGE, filteredChannels.length);
-    const pageChannels = filteredChannels.slice(start, end);
-
-    pageChannels.forEach(channel => {
-        const channelDiv = document.createElement('div');
-        channelDiv.classList.add('channel');
-        channelDiv.innerHTML = `
-            <img src="${channel.logo}" alt="${channel.name}" class="channel-logo" onerror="this.src='path/to/default_logo.png';" onclick="playStream('${encodeURIComponent(channel.url)}', '${encodeURIComponent(channel.name)}')">
-            <p>${channel.name}</p>
-        `;
-        container.appendChild(channelDiv);
-    });
-
-    // Update pagination info
-    document.getElementById('page-info').textContent = `Page ${currentPage} of ${Math.ceil(filteredChannels.length / CHANNELS_PER_PAGE)}`;
-    document.getElementById('prev-page').disabled = currentPage === 1;
-    document.getElementById('next-page').disabled = end >= filteredChannels.length;
+  updatePaginationInfo();
 }
 
-// Handle search input
-document.getElementById('search-input').addEventListener('input', (e) => {
-    searchQuery = e.target.value;
-    currentPage = 1;
-    displayChannels();
-});
+function searchChannels() {
+  const searchQuery = searchInput.value.toLowerCase();
+  const filteredPlaylist = playlist.filter((item) => {
+    return item.title.toLowerCase().includes(searchQuery);
+  });
 
-// Handle group selection
-document.getElementById('group-select').addEventListener('change', (e) => {
-    currentGroup = e.target.value === 'all' ? 'all' : e.target.value;
-    currentPage = 1;
-    displayChannels();
-});
+  return filteredPlaylist;
+}
 
-// Pagination controls
-document.getElementById('prev-page').addEventListener('click', () => {
-    if (currentPage > 1) {
-        currentPage--;
-        displayChannels();
-    }
-});
+function filterByGroup() {
+  const selectedGroup = groupSelect.value;
+  const filteredPlaylist = playlist.filter((item) => {
+    return item.group === selectedGroup;
+  });
 
-document.getElementById('next-page').addEventListener('click', () => {
-    const maxPage = Math.ceil(channels.filter(channel =>
-        (currentGroup === 'all' || channel.group === currentGroup) &&
-        (!searchQuery || channel.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    ).length / CHANNELS_PER_PAGE);
-    
-    if (currentPage < maxPage) {
-        currentPage++;
-        displayChannels();
-    }
-});
+  displayChannels();
+}
+
+function updatePaginationInfo() {
+  const totalPaginationPages = Math.ceil(playlist.length / itemsPerPage);
+  const paginationHtml = [];
+
+  for (let i = 1; i <= totalPaginationPages; i++) {
+    const paginationButton = document.createElement('button');
+    paginationButton.textContent = i;
+    paginationButton.addEventListener('click', () => {
+      currentPage = i;
+      displayChannels();
+    });
+
+    paginationHtml.push(paginationButton);
+  }
+
+  paginationContainer.innerHTML = '';
+  paginationContainer.appendChild(paginationHtml[0]);
+  paginationContainer.appendChild(paginationHtml[totalPaginationPages - 1]);
+}
 
 // Play stream by redirecting to the player page
 function playStream(url, name) {
