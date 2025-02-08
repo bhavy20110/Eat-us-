@@ -1,6 +1,6 @@
 <?php
 // Define the direct URL of the M3U8 file
-$m3u8Url = "https://streamcdn55.nayeem-parvez.workers.dev/hungama-kids/video.m3u8";
+$m3u8Url = "https://streamcdn55.nayeem-parvez.workers.dev/hungama-kids/tracks-v1a1/mono.m3u8";
 
 // Fetch the M3U8 file from the URL
 function fetchM3U8($url) {
